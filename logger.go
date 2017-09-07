@@ -24,7 +24,7 @@ func Get() *logrus.Logger {
 	return instance
 }
 
-func InitLogger(level int) {
+func Init(level int) {
 	instance = logrus.New()
 	logLevel := logrus.AllLevels[level]
 	instance.Level = logLevel
