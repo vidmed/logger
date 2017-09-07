@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"github.com/Gurpartap/logrus-stack"
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/getsentry/raven-go"
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,13 @@ func Init(level int) {
 	logLevel := logrus.AllLevels[level]
 	instance.Level = logLevel
 
-	instance.Infof("Logger - Logging established with level %q on stderr", logLevel)
+	instance.Infof("logger.Init - Logging established with level %q on stderr", logLevel)
+}
+
+func AddStackHook() {
+	callerLevels := logrus.AllLevels
+	stackLevels := []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
+	Get().AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
 }
 
 func AddLogstashHook(host string, port int, protocol string, level int) {
@@ -37,17 +44,17 @@ func AddLogstashHook(host string, port int, protocol string, level int) {
 	conn, err := net.Dial(protocol, hostPort)
 
 	if err != nil {
-		Get().Errorf("Logger - Error dialing logstash (%s): %s", hostPort, err.Error())
+		Get().Errorf("logger.Logstash - Error dialing logstash (%s): %s", hostPort, err.Error())
 	} else {
 		formatter := new(prefixed.TextFormatter)
 		logstashLevel := logrus.AllLevels[level]
-		Get().Infof("Logger - Establish %s connection on %s", protocol, hostPort)
+		Get().Infof("logger.Logstash - Establish %s connection on %s", protocol, hostPort)
 		hook := logrustash.New(conn, formatter)
 
 		if err := hook.Fire(&logrus.Entry{}); err != nil {
-			Get().Errorf("Logger - Error firing logstash hook: %s", err.Error())
+			Get().Errorf("logger.Logstash - Error firing logstash hook: %s", err.Error())
 		} else {
-			Get().Infof("Logger - Add hook for logstash with level %q", logstashLevel)
+			Get().Infof("logger.Logstash - Add hook for logstash with level %q", logstashLevel)
 			hook.SetLevel(logstashLevel)
 			Get().Hooks.Add(hook)
 		}
@@ -61,11 +68,11 @@ func AddSentryHook(apiKey, secret, host, projectId, release, env string) {
 		host,
 		projectId)
 
-	Get().Infof("Sentry - Adding hook to logger to url %q", dsn)
+	Get().Infof("logger.Sentry - Adding hook to logger to url %q", dsn)
 
 	// ---configure default client
 	if err := raven.SetDSN(dsn); err != nil {
-		Get().Errorf("Sentry - Error setting DSN to default client %q", err.Error())
+		Get().Errorf("logger.Sentry - Error setting DSN to default client %q", err.Error())
 	}
 	raven.SetRelease(release)
 	raven.SetEnvironment(env)
@@ -77,7 +84,7 @@ func AddSentryHook(apiKey, secret, host, projectId, release, env string) {
 	client.SetEnvironment(env)
 
 	if err != nil {
-		Get().Errorf("Sentry - Error getting new Sentry client instance %q", err.Error())
+		Get().Errorf("logger.Sentry - Error getting new Sentry client instance %q", err.Error())
 	}
 
 	hook, err := logrus_sentry.NewWithClientSentryHook(client, []logrus.Level{
@@ -91,7 +98,7 @@ func AddSentryHook(apiKey, secret, host, projectId, release, env string) {
 	hook.Timeout = time.Second * 5
 
 	if err != nil {
-		Get().Errorf("Sentry - Error creating a hook using an initialized client %q", err.Error())
+		Get().Errorf("logger.Sentry - Error creating a hook using an initialized client %q", err.Error())
 	} else {
 		Get().Hooks.Add(hook)
 	}
