@@ -41,7 +41,7 @@ func AddStackHook() {
 
 func AddLogstashHook(host string, port int, protocol string, level int) {
 	if host == "" || port == 0 {
-		Get().Infof("logger.Logstash - got host (%q), port(d). Skipping..", host, port)
+		Get().Infof("logger.Logstash - got host (%q), port(%d). Skipping..", host, port)
 		return
 	}
 	hostPort := fmt.Sprintf("%s:%d", host, port)
@@ -67,7 +67,7 @@ func AddLogstashHook(host string, port int, protocol string, level int) {
 
 func AddSentryHook(apiKey, secret, host, projectId, release, env string) {
 	if apiKey == "" || secret == "" || host == "" || projectId == "" {
-		Get().Infof("logger.Sentry - got apiKey (%q), secret (%q), host (%q), projectId (%q),. Skipping..", apiKey, secret, host, projectId)
+		Get().Infof("logger.Sentry - got apiKey (%q), secret (%q), host (%q), projectId (%q). Skipping..", apiKey, secret, host, projectId)
 		return
 	}
 	dsn := fmt.Sprintf("https://%s:%s@%s/%s",
